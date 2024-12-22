@@ -28,7 +28,7 @@ def print_policy_grid(policy_grid):
 def main():
     max_iter_number = 10000
     choice = get_algorithm_choice()
-    env = FrozenLake(render_mode="human", map_name="8x8", speed_multiplier=0.5)
+    env = FrozenLake(render_mode="human", map_name="8x8", speed_multiplier=0.4)
     observation, info = env.reset(seed=30)
     terminal_state = env.nS - 1
     action_names = {0: 'UP', 1: 'RIGHT', 2: 'DOWN', 3: 'LEFT'}
@@ -42,16 +42,20 @@ def main():
     print(f"\n{Fore.CYAN}Using {algorithm_names[choice]}{Style.RESET_ALL}")
     
     if choice == '1':
+        env.update_algorithm_name("Value Iteration")
         solution = ValueIteration(env, terminal_state=terminal_state)
         
     elif choice == '2':
+        env.update_algorithm_name("Policy Iteration")
         solution = PolicyIteration(env, terminal_state=terminal_state)
         
     elif choice == '3':
+        env.update_algorithm_name("Monte Carlo")
         env.render_mode = "ansi"
         solution = MonteCarlo(env, terminal_state=terminal_state)
         
     elif choice == '4':
+        env.update_algorithm_name("Q-Learning")
         env.render_mode = "ansi"
         solution = QLearning(env, terminal_state=terminal_state)
 
