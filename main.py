@@ -1,31 +1,32 @@
 from source import FrozenLake
 from value_iteration import ValueIteration
 from policy_iteration import PolicyIteration
+from monte_carlo import MonteCarlo
 
 def get_algorithm_choice():
     while True:
-        choice = input("Choose algorithm [1: Value Iteration, 2: Policy Iteration]: ")
-        if choice in ['1', '2']:
+        choice = input("Choose algorithm [1: Value Iteration, 2: Policy Iteration, 3: Monte Carlo]: ")
+        if choice in ['1', '2', '3']:
             return choice
-        print("Invalid choice. Please enter 1 or 2.")
+        print("Invalid choice. Please enter 1, 2, or 3.")
 
 def main():
     max_iter_number = 1000000000000
-       # Get algorithm choice
     choice = get_algorithm_choice()
     env = FrozenLake(render_mode="human", map_name="8x8")
     observation, info = env.reset(seed=30)
     terminal_state = env.nS - 1
     
- 
-    
     # Initialize chosen algorithm
     if choice == '1':
         print("\nUsing Value Iteration")
         solution = ValueIteration(env, terminal_state=terminal_state)
-    else:
+    elif choice == '2':
         print("\nUsing Policy Iteration")
         solution = PolicyIteration(env, terminal_state=terminal_state)
+    else:
+        print("\nUsing Monte Carlo")
+        solution = MonteCarlo(env, terminal_state=terminal_state)
     
     policy = solution.solve()
     current_state = observation
