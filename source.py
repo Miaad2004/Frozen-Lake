@@ -38,6 +38,7 @@ class FrozenLake(FrozenLakeEnv):
         is_hardmode=True,
         numhole_positions=10,
         speed_multiplier=0.4,
+        algorithm_name=None,  
         *args,
         **kwargs,
     ):
@@ -61,6 +62,7 @@ class FrozenLake(FrozenLakeEnv):
         super().__init__(*args, **kwargs)
         self.is_hardmode = is_hardmode
         self.shape = (8, 8)  # 8x8 frozen lake
+        self.algorithm_name = algorithm_name  
 
         self.start_state = (0, 0)  # Starting position
         self.terminal_state = (7, 7)  # Goal position
@@ -160,6 +162,16 @@ class FrozenLake(FrozenLakeEnv):
         next_state, reward, done, truncated, info = super().step(action)
         return next_state, reward, done, truncated, info
 
+    def _create_transparent_text(self, text, size=32, color=(255, 255, 255), alpha=180):
+        font = pygame.font.Font(None, size)
+        text_surface = font.render(text, True, color)
+        
+        alpha_surface = pygame.Surface(text_surface.get_size(), pygame.SRCALPHA)
+        alpha_surface.fill((255, 255, 255, alpha))
+        
+        text_surface.blit(alpha_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        return text_surface
+
     def _render_gui(self, mode):
         if self.window_surface is None:
             pygame.init()
@@ -249,6 +261,39 @@ class FrozenLake(FrozenLakeEnv):
                 )  # Default to down
                 self.window_surface.blit(self.elf_images[last_action], elf_pos)
 
+        if self.algorithm_name:
+            text_shadow = self._create_transparent_text(
+                self.algorithm_name,
+                size=50,
+                color=(100, 29, 175),  # Darker shade
+                alpha=190,
+            )
+            text_surface = self._create_transparent_text(
+                self.algorithm_name,
+                size=50,
+                color=(133, 39, 232),
+                alpha=175,
+            )
+            
+           
+            text_rect = text_surface.get_rect(center=(self.window_size[0] // 2, 50))
+            
+            padding = 10
+            bg_rect = pygame.Rect(
+                text_rect.left - padding,
+                text_rect.top - padding,
+                text_rect.width + (padding * 2),
+                text_rect.height + (padding * 2)
+            )
+            
+            # Create semi-transparent background
+            bg_surface = pygame.Surface((bg_rect.width, bg_rect.height), pygame.SRCALPHA)
+            bg_surface.fill((128, 128, 128, 125))  
+            
+            # Blit background, shadow, then text
+            self.window_surface.blit(bg_surface, bg_rect)
+            self.window_surface.blit(text_surface, text_rect)
+
         # Update display based on mode
         if mode == "human":
             pygame.event.pump()
@@ -274,6 +319,9 @@ class FrozenLake(FrozenLakeEnv):
         start_position = get_saved_position(pth, pygame.mixer.Sound(Path).get_length())
         pygame.mixer.music.play(start=start_position, loops=-1)
 
+    def update_algorithm_name(self, new_name):
+        self.algorithm_name = new_name
+    
     def close(self):
         saveST()
         super().close()
