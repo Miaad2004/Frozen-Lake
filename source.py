@@ -6,6 +6,7 @@ import signal
 import sys
 import pygame
 
+
 UP = 0
 RIGHT = 1
 DOWN = 2
@@ -32,7 +33,10 @@ def Interrupt(sig, frame):
 
 
 class FrozenLake(FrozenLakeEnv):
-    def __init__(self, is_hardmode=True, numhole_positions=10, *args, **kwargs):
+    def __init__(self, is_hardmode=True, numhole_positions=10, speed_multiplier=0.4, *args, **kwargs):
+        if 'render_mode' in kwargs:
+            self.metadata["render_fps"] = int(32 * speed_multiplier)
+            
         if len(sys.argv) == 2:
             arg = sys.argv[1]
             if arg.startswith("soundtrack="):
@@ -86,6 +90,9 @@ class FrozenLake(FrozenLakeEnv):
             self.P[s][2] = self._calculate_transition_prob(position, [1, 0])  # DOWN
             self.P[s][3] = self._calculate_transition_prob(position, [0, -1])  # LEFT
 
+    def update_speed(self, speed_multiplier):
+        self.metadata["render_fps"] = int(32 * speed_multiplier)
+    
     def _calculate_transition_prob(self, position, action):
         new_row = position[0] + action[0]
         new_col = position[1] + action[1]
