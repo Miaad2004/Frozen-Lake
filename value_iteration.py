@@ -8,90 +8,103 @@ class ValueIteration(Solution):
         self.gamma = gamma
         self.theta = theta
         self.terminal_state = terminal_state
-        
+
         if not terminal_state:
-            self.terminal_state = env.nS - 1        
-        
+            self.terminal_state = env.nS - 1
+
         self.V = np.zeros(env.nS)
         self.pi = np.zeros(env.nS)
-    
+
     def reward(self, state, action, next_state):
-        step_cost = -0.1
-        
         if next_state == self.terminal_state:
-            return 10
-        
+            return 2.0  
+            
         transmission = self.env.P[state][action][0]
         is_hole = transmission[3]
         
-        if not is_hole:
-             return step_cost
+        if is_hole:
+            return -1.0  
         
-        return transmission[2]
-    
+        # Distance-based reward
+        grid_size = int(np.sqrt(self.env.nS))
+        s_row, s_col = divmod(state, grid_size)
+        t_row, t_col = divmod(self.terminal_state, grid_size)
+        manhattan_dist = abs(s_row - t_row) + abs(s_col - t_col)
+        
+        # Reward for moving closer to goal
+        next_row, next_col = divmod(next_state, grid_size)
+        next_dist = abs(next_row - t_row) + abs(next_col - t_col)
+        if next_dist < manhattan_dist:
+            return 0.1 
+            
+        return -0.01  # negative reward for other moves
+
     def probability(self, state, action, next_state):
         if self.env.is_hardmode:
             probs = {
                 0: {0: 0.5, 1: 0.25, 3: 0.25},  # UP
                 1: {0: 0.25, 1: 0.5, 2: 0.25},  # RIGHT
                 2: {1: 0.25, 2: 0.5, 3: 0.25},  # DOWN
-                3: {0: 0.25, 2: 0.25, 3: 0.5}   # LEFT
+                3: {0: 0.25, 2: 0.25, 3: 0.5},  # LEFT
             }
-            
+
             total_prob = 0
             for possible_action, prob in probs[action].items():
                 transition = self.env.P[state][possible_action][0]
                 possible_next_state = transition[1]
-                
+
                 if possible_next_state == next_state:
                     total_prob += prob
-            
+
             return total_prob
-        
+
         else:
             transition = self.env.P[state][action][0]
-            return 1. if transition[1] == next_state else 0.
-    
+            return 1.0 if transition[1] == next_state else 0.0
+
     def Q(self, state, action):
         expected_reward = 0
         for next_state in range(self.env.nS):
             p = self.probability(state, action, next_state)
             r = self.reward(state, action, next_state)
             expected_reward += p * (r + self.gamma * self.V[next_state])
-        
+
         return expected_reward
 
     def value_iteration(self):
         while True:
             # Compute the new expected utility (V)
             new_V = np.zeros(self.env.nS)
-            
+
             for state in range(self.env.nS):
                 if state == self.terminal_state:
                     new_V[state] = 0
                     continue
-                
+
                 else:
-                    new_V[state] = max(self.Q(state, action) for action in range(self.env.nA))
-            
+                    new_V[state] = max(
+                        self.Q(state, action) for action in range(self.env.nA)
+                    )
+
             # Check for convergence
             if np.max(np.abs(self.V - new_V)) < self.theta:
                 break
-            
+
             self.V = new_V
-    
+
     def calc_optimal_policy(self):
-            for state in range(self.env.nS):
-                if state == self.terminal_state:
-                    self.pi[state] = None
-                    continue
-                    
-                else:
-                    self.pi[state] = np.argmax([self.Q(state, action) for action in range(self.env.nA)])
-                
-    
+        for state in range(self.env.nS):
+            if state == self.terminal_state:
+                self.pi[state] = None
+                continue
+
+            else:
+                self.pi[state] = np.argmax(
+                    [self.Q(state, action) for action in range(self.env.nA)]
+                )
+
     def solve(self):
         self.value_iteration()
         self.calc_optimal_policy()
-        
+
         return self.pi
