@@ -2,10 +2,11 @@ import numpy as np
 from solution import Solution
 
 class MonteCarlo(Solution):
-    def __init__(self, env, gamma=0.9, num_episodes=1000, terminal_state=None):
+    def __init__(self, env, gamma=0.9, num_episodes=1000, epsilon=0.1, terminal_state=None):
         self.env = env
         self.gamma = gamma
         self.num_episodes = num_episodes
+        self.epsilon = epsilon
         self.terminal_state = terminal_state if terminal_state else env.nS - 1
         
         self.V = np.zeros(env.nS)
@@ -13,29 +14,57 @@ class MonteCarlo(Solution):
         self.returns = {(s, a): [] for s in range(env.nS) for a in range(env.nA)}
         self.pi = np.random.randint(0, env.nA, size=env.nS)
         self.pi[self.terminal_state] = -1
+        
+        # New additions for optimization
+        self.min_episodes = 100
+        self.convergence_threshold = 1e-9
+        self.batch_size = 20
+
+    def get_action(self, state):
+        if state == self.terminal_state:
+            return -1
+        return np.random.randint(0, self.env.nA) if np.random.random() < self.epsilon else self.pi[state]
 
     def generate_episode(self):
         episode = []
         state = self.env.reset()[0]
+        max_steps = 500
         
-        while True:
-            action = self.pi[state]
+        for _ in range(max_steps):
+            action = self.get_action(state)
             if action == -1:
                 break
                 
-            next_state, reward, done, _, _ = self.env.step(action)
+            next_state, _, done, _, _ = self.env.step(action)
+            reward = self.reward(state, action, next_state)
             episode.append((state, action, reward))
             
-            if done or state == self.terminal_state:
+            if done:
                 break
                 
             state = next_state
             
         return episode
 
+    def reward(self, state, action, next_state):
+        step_cost = -0.2
+        
+        if next_state == self.terminal_state:
+            return 20
+        
+        transmission = self.env.P[state][action][0]
+        is_hole = transmission[3]
+        
+        if not is_hole:
+             return step_cost
+        
+        return -5
+    
     def monte_carlo_evaluation(self):
-        for _ in range(self.num_episodes):
-            episode = self.generate_episode()
+        old_Q = self.Q.copy()
+        episodes = [self.generate_episode() for _ in range(self.batch_size)]
+        
+        for episode in episodes:
             G = 0
             visited_pairs = set()
             
@@ -46,7 +75,11 @@ class MonteCarlo(Solution):
                 if (state, action) not in visited_pairs:
                     visited_pairs.add((state, action))
                     self.returns[(state, action)].append(G)
+                    # Keep only recent returns to save memory
+                    self.returns[(state, action)] = self.returns[(state, action)][-1000:]
                     self.Q[state, action] = np.mean(self.returns[(state, action)])
+        
+        return np.max(np.abs(old_Q - self.Q))
 
     def policy_improvement(self):
         policy_stable = True
@@ -61,23 +94,19 @@ class MonteCarlo(Solution):
                 policy_stable = False
         return policy_stable
 
-    def print_policy(self):
-        action_names = {0: 'UP', 1: 'RIGHT', 2: 'DOWN', 3: 'LEFT', -1: 'GOAL'}
-        policy_grid = np.array(self.pi).reshape(self.env.shape)
-        policy_grid = np.vectorize(lambda x: action_names.get(x, 'NONE'))(policy_grid)
-        
-        print("\nOptimal Policy:")
-        for row in policy_grid:
-            print(" ".join(f"{action:5}" for action in row))
-
     def solve(self):
         iteration = 0
-        while True:
+        episodes_done = 0
+        
+        while episodes_done < self.num_episodes:
             iteration += 1
-            print(f"\nIteration {iteration}")
-            self.monte_carlo_evaluation()
-            if self.policy_improvement():
+            delta = self.monte_carlo_evaluation()
+            episodes_done += self.batch_size
+            
+            if iteration % 10 == 0:
+                print(f"Iteration {iteration}, Episodes: {episodes_done}, Delta: {delta:.4f}")
+            
+            if self.policy_improvement() and episodes_done > self.min_episodes and delta < self.convergence_threshold:
                 break
         
-        self.print_policy()
         return self.pi
