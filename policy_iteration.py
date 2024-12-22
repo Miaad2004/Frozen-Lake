@@ -1,4 +1,3 @@
-# policy_iteration.py
 import numpy as np
 from solution import Solution
 
