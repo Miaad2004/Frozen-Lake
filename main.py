@@ -2,13 +2,14 @@ from source import FrozenLake
 from value_iteration import ValueIteration
 from policy_iteration import PolicyIteration
 from monte_carlo import MonteCarlo
+from q_learning import QLearning
 
 def get_algorithm_choice():
     while True:
-        choice = input("Choose algorithm [1: Value Iteration, 2: Policy Iteration, 3: Monte Carlo]: ")
-        if choice in ['1', '2', '3']:
+        choice = input("Choose algorithm [1: Value Iteration, 2: Policy Iteration, 3: Monte Carlo, 4: Q-Learning]: ")
+        if choice in ['1', '2', '3', '4']:
             return choice
-        print("Invalid choice. Please enter 1, 2, or 3.")
+        print("Invalid choice. Please enter 1, 2, 3, or 4.")
 
 def main():
     max_iter_number = 1000000000000
@@ -24,9 +25,12 @@ def main():
     elif choice == '2':
         print("\nUsing Policy Iteration")
         solution = PolicyIteration(env, terminal_state=terminal_state)
-    else:
+    elif choice == '3':
         print("\nUsing Monte Carlo")
         solution = MonteCarlo(env, terminal_state=terminal_state)
+    elif choice == '4':
+        print("\nUsing Q-Learning")
+        solution = QLearning(env, terminal_state=terminal_state)
     
     policy = solution.solve()
     current_state = observation
