@@ -33,10 +33,17 @@ def Interrupt(sig, frame):
 
 
 class FrozenLake(FrozenLakeEnv):
-    def __init__(self, is_hardmode=True, numhole_positions=10, speed_multiplier=0.4, *args, **kwargs):
-        if 'render_mode' in kwargs:
+    def __init__(
+        self,
+        is_hardmode=True,
+        numhole_positions=10,
+        speed_multiplier=0.4,
+        *args,
+        **kwargs,
+    ):
+        if "render_mode" in kwargs:
             self.metadata["render_fps"] = int(32 * speed_multiplier)
-            
+
         if len(sys.argv) == 2:
             arg = sys.argv[1]
             if arg.startswith("soundtrack="):
@@ -92,7 +99,7 @@ class FrozenLake(FrozenLakeEnv):
 
     def update_speed(self, speed_multiplier):
         self.metadata["render_fps"] = int(32 * speed_multiplier)
-    
+
     def _calculate_transition_prob(self, position, action):
         new_row = position[0] + action[0]
         new_col = position[1] + action[1]
@@ -166,8 +173,10 @@ class FrozenLake(FrozenLakeEnv):
                         caption += " - Nine Thou"
                     else:
                         caption += " - " + Tname
+                        
                 pygame.display.set_caption(caption)
                 self.window_surface = pygame.display.set_mode(self.window_size)
+                
             else:  # rgb_array
                 self.window_surface = pygame.Surface(self.window_size)
 
@@ -181,14 +190,17 @@ class FrozenLake(FrozenLakeEnv):
                     pygame.image.load(path.join(image_path, "img/cab_rear.png")),
                     self.cell_size,
                 ),
+                
                 pygame.transform.scale(
                     pygame.image.load(path.join(image_path, "img/cab_right.png")),
                     self.cell_size,
                 ),
+                
                 pygame.transform.scale(
                     pygame.image.load(path.join(image_path, "img/cab_front.png")),
                     self.cell_size,
                 ),
+                
                 pygame.transform.scale(
                     pygame.image.load(path.join(image_path, "img/cab_left.png")),
                     self.cell_size,
@@ -242,6 +254,7 @@ class FrozenLake(FrozenLakeEnv):
             pygame.event.pump()
             pygame.display.update()
             self.clock.tick(self.metadata["render_fps"])  # Control the frame rate
+            
         else:  # rgb_array
             return np.transpose(
                 np.array(pygame.surfarray.pixels3d(self.window_surface)), axes=(1, 0, 2)
