@@ -1,0 +1,5 @@
+colorama==0.4.6
+gymnasium==1.0.0
+numpy==2.2.0
+pygame==2.6.1
+tqdm==4.67.1
