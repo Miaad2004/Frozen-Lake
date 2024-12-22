@@ -81,8 +81,6 @@ class ValueIteration(Solution):
             self.V = new_V
     
     def calc_optimal_policy(self):
-            action_names = {0: 'UP', 1: 'RIGHT', 2: 'DOWN', 3: 'LEFT'}
-            
             for state in range(self.env.nS):
                 if state == self.terminal_state:
                     self.pi[state] = None
@@ -90,14 +88,6 @@ class ValueIteration(Solution):
                     
                 else:
                     self.pi[state] = np.argmax([self.Q(state, action) for action in range(self.env.nA)])
-            
-            policy_grid = np.array(self.pi).reshape(self.env.shape)
-            policy_grid = np.vectorize(action_names.get)(policy_grid)
-            
-            print("Optimal Policy:")
-            for row in policy_grid:
-                print(" ".join(f"{action:5}" for action in row))
-        
                 
     
     def solve(self):
