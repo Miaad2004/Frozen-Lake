@@ -1,6 +1,13 @@
 # Frozen Taxi-RL
 A collection of reinforcement learning algorithms and other methods for solving MDPs, implemented for the stochastic Frozen Lake environment from Gymnasium.
 
+<p float="left">
+  <img src='screenshots/Q_learning.gif' width='400'/>
+  <img src='screenshots/Value_iter.gif' width='400'/>
+  <img src='screenshots/policy_iter.gif' width='400'/>
+  <img src='screenshots/Monte_Carlo.gif' width='400'/>
+</p>
+
 ## Algorithms Implemented
 - **Value Iteration**: For solving MDPs
 - **Policy Iteration**: For solving MDPs
