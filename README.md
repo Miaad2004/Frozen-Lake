@@ -38,3 +38,8 @@ python main.py
   - Action uncertainty in hard mode
 
 > Note: This code is part of a college project, and the source.py file was provided by the course instructor. source.py is not my original work.
+
+## Contributors
+
+- [taha-najaf](https://github.com/taha-najaf)
+- [Miaad2004](https://github.com/Miaad2004)
